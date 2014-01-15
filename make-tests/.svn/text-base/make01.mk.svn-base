@@ -1,0 +1,16 @@
+foo.o: foo.c foo.h
+        gcc -g -c foo.o foo.c
+
+foo: foo.o
+	gcc -o foo foo.o
+
+foo.c: foo.y
+	yacc -o foo.c foo.y
+
+        // if (traversed.contains(v1.getLabel())) {
+        //     System.out.println(traversed);
+        //     System.out.println(v1);
+        //     System.err.println("what the fuck? plz, no write circular");
+        //     System.exit(1);
+        // }
+

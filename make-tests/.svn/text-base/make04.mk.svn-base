@@ -1,0 +1,5 @@
+foo: foo.c
+	yay
+
+foo.c: foo
+	nah

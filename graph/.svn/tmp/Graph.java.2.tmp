@@ -1,0 +1,803 @@
+package graph;
+
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Collections;
+import java.util.Stack;
+
+/* Do not add or remove public or protected members, or modify the signatures of
+ * any public methods.  You may make methods in Graph abstract, if you want
+ * different implementations in DirectedGraph and UndirectedGraph.  You may
+ * add bodies to abstract methods, modify existing bodies, or override
+ * inherited methods. */
+
+/** Represents a general graph whose vertices are labeled with a type
+ *  VLABEL and whose edges are labeled with a type ELABEL. The
+ *  vertices are represented by the inner type Vertex and edges by
+ *  inner type Edge.  A graph may be directed or undirected.  For
+ *  an undirected graph, outgoing and incoming edges are the same.
+ *  The vertices and edges of the graph, the edges incident on a
+ *  vertex, and the neighbors of a vertex are all accessible by
+ *  iterators.  Changing the graph's structure by adding or deleting
+ *  edges or vertices invalidates these iterators (subsequent use of
+ *  them is undefined.)
+ *  @author Felix Liu
+ */
+public abstract class Graph<VLabel, ELabel> {
+
+<<<<<<< .mine
+    /** Represents one of my vertices. */
+    public class Vertex {
+
+        /** A new vertex with LABEL as the value of getLabel(). */
+        Vertex(VLabel label) {
+            _label = label;
+        }
+        /** Returns the ArrayList communion. Gets the ArrayList
+         *  of connecting vertices. Takes in type to specify
+         *  the arraylist. Takes in the string TYPE. */
+        public ArrayList<Graph<VLabel, ELabel>.Vertex>
+        getList(String type) {
+            if (type.equals("com")) {
+                return communion;
+            }
+            if (type.equals("pred")) {
+                return pred;
+            }
+            return null;
+        }
+
+        /** Returns the label on this vertex. */
+        public VLabel getLabel() {
+            return _label;
+        }
+
+        /** Function that adds the vertex
+         *  INPUT to communion. */
+        public void partner(Vertex input) {
+            communion.add(input);
+        }
+
+        /** Function hat adds the predecessor to the
+         *  pred arraylist. Takes in the vertex INPUT. */
+        public void predpartner(Vertex input) {
+            pred.add(input);
+        }
+
+        /** Cleans up the ArrayList for neighboring
+         *  vertices. A partner for adjacency cleaner
+         *  to avoid private issues and takes in the
+         *  vertex INPUT. */
+        public void scrubber(Vertex input) {
+            communion.removeAll(Collections.singleton(input));
+        }
+
+        /** Helps to clean up the pred for predecessors in
+         *  the case of Directed Graphs. Takes in the vertex INPUT. */
+        public void scrubber2(Vertex input) {
+            pred.removeAll(Collections.singleton(input));
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(_label);
+        }
+
+        /** The label on this vertex. */
+        private final VLabel _label;
+
+        /** ArrayList field that holds adjacent
+         *  vertices or when a vertex is connected
+         *  with an edge. */
+        private ArrayList<Vertex> communion
+            = new ArrayList<Vertex>();
+
+        /** ArrayList field that holds adjacent
+         *  vertices typically thought of as
+         *  predecessors. */
+        private ArrayList<Vertex> pred
+            = new ArrayList<Vertex>();
+
+        /** Returns the current status of the marking of
+         *  this vertex. Takes in the string INPUT. */
+        boolean status(String input) {
+            switch(input) {
+            case "discovered":
+                return discovered;
+            case "explored":
+                return explored;
+            default:
+                return false;
+            }
+        }
+
+        /** Discover function which changes
+         *  discovered to true. */
+        void discover() {
+            discovered = true;
+        }
+
+        /** Explore function which changes
+         *  explored to true. */
+        void explore() {
+            explored = true;
+        }
+
+        /** boolean which states the state of
+         *  discovery. */
+        private boolean discovered = false;
+
+        /** boolean which states the state of
+         *  explored. */
+        private boolean explored = false;
+    }
+
+    /** Represents one of my edges. */
+    public class Edge {
+
+        /** An edge (V0,V1) with label LABEL.  It is a directed edge (from
+         *  V0 to V1) in a directed graph. */
+        Edge(Vertex v0, Vertex v1, ELabel label) {
+            _label = label;
+            _v0 = v0;
+            _v1 = v1;
+        }
+
+        /** Returns the label on this edge. */
+        public ELabel getLabel() {
+            return _label;
+        }
+
+        /** Return the vertex this edge exits. For an undirected edge, this is
+         *  one of the incident vertices. */
+        public Vertex getV0() {
+            return _v0;
+        }
+
+        /** Return the vertex this edge enters. For an undirected edge, this is
+         *  the incident vertices other than getV1(). */
+        public Vertex getV1() {
+            return _v1;
+        }
+
+        /** Returns the vertex at the other end of me from V.  */
+        public final Vertex getV(Vertex v) {
+            if (v == _v0) {
+                return _v1;
+            } else if (v == _v1) {
+                return _v0;
+            } else {
+                throw new
+                    IllegalArgumentException("vertex not incident to edge");
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s,%s):%s", _v0, _v1, _label);
+        }
+
+        /** Endpoints of this edge.  In directed edges, this edge exits _V0
+         *  and enters _V1. */
+        private final Vertex _v0, _v1;
+
+        /** The label on this edge. */
+        private final ELabel _label;
+
+        /** Returns the current status of the marking of
+         *  this vertex. Takes in the string INPUT. */
+        boolean status(String input) {
+            switch(input) {
+            case "discovered":
+                return discovered;
+            case "explored":
+                return explored;
+            default:
+                return false;
+            }
+        }
+
+        /** Discover function which changes
+         *  discovered to true. */
+        void discover() {
+            discovered = true;
+        }
+
+        /** Explore function which changes
+         *  explored to true. */
+        void explore() {
+            explored = true;
+        }
+
+        /** boolean which states the state of
+         *  discovery. */
+        private boolean discovered = false;
+
+        /** boolean which states the state of
+         *  explored. */
+        private boolean explored = false;
+    }
+
+    /*=====  Methods and variables of Graph =====*/
+
+
+    /** ArrayList to hold the vertices. */
+    private ArrayList<Vertex> masterVert = new ArrayList<Vertex>();
+
+    /** ArrayList to hold the edges. */
+    private ArrayList<Edge> masterEdge = new ArrayList<Edge>();
+
+    /** Stack which aids in reconstruction. */
+    private Stack<Vertex> stack = new Stack<Vertex>();
+
+    /** ArrayList that holds the best path. */
+    private ArrayList<Edge> bestPath = new ArrayList<Edge>();
+
+    /** method helps to create a new vertex according
+     *  to LABEL. Returns a Vertex. */
+    public Vertex create(VLabel label) {
+        return new Vertex(label);
+    }
+
+=======
+    /** Represents one of my vertices. */
+    public class Vertex {
+
+        /** A new vertex with LABEL as the value of getLabel(). */
+        Vertex(VLabel label) {
+            _label = label;
+        }
+
+        /** Returns the label on this vertex. */
+        public VLabel getLabel() {
+            return _label;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(_label);
+        }
+
+        /** The label on this vertex. */
+        private final VLabel _label;
+
+    }
+
+    /** Represents one of my edges. */
+    public class Edge {
+
+        /** An edge (V0,V1) with label LABEL.  It is a directed edge (from
+         *  V0 to V1) in a directed graph. */
+        Edge(Vertex v0, Vertex v1, ELabel label) {
+            _label = label;
+            _v0 = v0;
+            _v1 = v1;
+        }
+
+        /** Returns the label on this edge. */
+        public ELabel getLabel() {
+            return _label;
+        }
+
+        /** Return the vertex this edge exits. For an undirected edge, this is
+         *  one of the incident vertices. */
+        public Vertex getV0() {
+            return _v0;
+        }
+
+        /** Return the vertex this edge enters. For an undirected edge, this is
+         *  the incident vertices other than getV1(). */
+        public Vertex getV1() {
+            return _v1;
+        }
+
+        /** Returns the vertex at the other end of me from V.  */
+        public final Vertex getV(Vertex v) {
+            if (v == _v0) {
+                return _v1;
+            } else if (v == _v1) {
+                return _v0;
+            } else {
+                throw new
+                    IllegalArgumentException("vertex not incident to edge");
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s,%s):%s", _v0, _v1, _label);
+        }
+
+        /** Endpoints of this edge.  In directed edges, this edge exits _V0
+         *  and enters _V1. */
+        private final Vertex _v0, _v1;
+
+        /** The label on this edge. */
+        private final ELabel _label;
+
+    }
+
+    /*=====  Methods and variables of Graph =====*/
+
+>>>>>>> .r50974
+    /** Returns the number of vertices in me. */
+    public int vertexSize() {
+        return masterVert.size();
+    }
+
+    /** Returns the number of edges in me. */
+    public int edgeSize() {
+        return (masterEdge.size() / 2);
+    }
+
+    /** Returns true iff I am a directed graph. */
+    public abstract boolean isDirected();
+
+    /** Returns the number of outgoing edges incident to V. Assumes V is one of
+     *  my vertices.  */
+<<<<<<< .mine
+    public int outDegree(Vertex v) {
+        int count = 0;
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV0();
+            if (tmp.equals(v)) {
+                count++;
+            }
+        }
+        return count;
+=======
+    public int outDegree(Vertex v) {
+        // FIXME
+        return 0;
+>>>>>>> .r50974
+    }
+
+    /** Returns the number of incoming edges incident to V. Assumes V is one of
+     *  my vertices. */
+<<<<<<< .mine
+    public int inDegree(Vertex v) {
+        int count = 0;
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV1();
+            if (tmp.equals(v)) {
+                count++;
+            }
+        }
+        return count;
+=======
+    public int inDegree(Vertex v) {
+        // FIXME
+        return 0;
+>>>>>>> .r50974
+    }
+
+    /** Returns outDegree(V). This is simply a synonym, intended for
+     *  use in undirected graphs. */
+    public final int degree(Vertex v) {
+        return outDegree(v);
+    }
+
+    /** Returns true iff there is an edge (U, V) in me with any label. */
+<<<<<<< .mine
+    public boolean contains(Vertex u, Vertex v) {
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV0();
+            Vertex tmp1 = items.getV1();
+            if (tmp.equals(u) && tmp1.equals(v)) {
+                return true;
+            }
+        }
+=======
+    public boolean contains(Vertex u, Vertex v) {
+        // FIXME
+>>>>>>> .r50974
+        return false;
+    }
+
+    /** Returns true iff there is an edge (U, V) in me with label LABEL. */
+<<<<<<< .mine
+    public boolean contains(Vertex u, Vertex v,
+                            ELabel label) {
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV0();
+            Vertex tmp1 = items.getV1();
+            ELabel tmp2 = items.getLabel();
+            if (tmp.equals(u) && tmp1.equals(v)
+                && tmp2.equals(label)) {
+                return true;
+            }
+        }
+=======
+    public boolean contains(Vertex u, Vertex v,
+                            ELabel label) {
+        // FIXME
+>>>>>>> .r50974
+        return false;
+    }
+
+    /** Returns a new vertex labeled LABEL, and adds it to me with no
+     *  incident edges. */
+<<<<<<< .mine
+    public Vertex add(VLabel label) {
+        Vertex protoV = new Vertex(label);
+        masterVert.add(protoV);
+        return protoV;
+=======
+    public Vertex add(VLabel label) {
+        // FIXME
+        return null;
+>>>>>>> .r50974
+    }
+
+    /** Returns an edge incident on FROM and TO, labeled with LABEL
+     *  and adds it to this graph. If I am directed, the edge is directed
+     *  (leaves FROM and enters TO). */
+<<<<<<< .mine
+    public Edge add(Vertex from,
+                    Vertex to,
+                    ELabel label) {
+        if (masterVert.contains(from)
+                && masterVert.contains(to)) {
+            if (isDirected()) {
+                Edge protoE = new Edge(from, to, label);
+                masterEdge.add(protoE);
+                from.partner(to);
+                to.predpartner(from);
+                return protoE;
+            } else {
+                Edge protoE = new Edge(from, to, label);
+                Edge protoE2 = new Edge(to, from, label);
+                masterEdge.add(protoE);
+                masterEdge.add(protoE2);
+                from.partner(to);
+                to.partner(from);
+                return protoE;
+            }
+        } else {
+            System.err.println("vertex doesn't exist"
+                + " to create edge.");
+            return null;
+        }
+=======
+    public Edge add(Vertex from,
+                    Vertex to,
+                    ELabel label) {
+        // FIXME
+        return null;
+>>>>>>> .r50974
+    }
+
+    /** Returns an edge incident on FROM and TO with a null label
+     *  and adds it to this graph. If I am directed, the edge is directed
+     *  (leaves FROM and enters TO). */
+<<<<<<< .mine
+    public Edge add(Vertex from,
+                    Vertex to) {
+        if (masterVert.contains(from)
+                && masterVert.contains(to)) {
+            if (isDirected()) {
+                Edge protoE = new Edge(from, to, null);
+                masterEdge.add(protoE);
+                from.partner(to);
+                to.predpartner(from);
+                return protoE;
+            } else {
+                Edge protoE = new Edge(from, to, null);
+                Edge protoE2 = new Edge(to, from, null);
+                masterEdge.add(protoE);
+                masterEdge.add(protoE2);
+                from.partner(to);
+                to.partner(from);
+                return protoE;
+            }
+        } else {
+            System.err.println("vertex doesn't exist"
+                + " to create edge.");
+            return null;
+        }
+=======
+    public Edge add(Vertex from,
+                    Vertex to) {
+        // FIXME
+        return null;
+>>>>>>> .r50974
+    }
+
+    /** Remove V and all adjacent edges, if present. */
+<<<<<<< .mine
+    public void remove(Vertex v) {
+        if (masterVert.contains(v)) {
+            masterVert.remove(v);
+            for (Iterator<Edge> iterator
+                    = masterEdge.iterator(); iterator.hasNext();) {
+                Edge tempEdge = iterator.next();
+                Vertex tmp = tempEdge.getV0();
+                Vertex tmp1 = tempEdge.getV1();
+                if (tmp.equals(v) || tmp1.equals(v)) {
+                    iterator.remove();
+                }
+            }
+            adjacencyCleaner(v);
+        }
+=======
+    public void remove(Vertex v) {
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Function that cleans up shadow adjacencies and
+     *  takes in the vertex INPUT. */
+    public void adjacencyCleaner(Vertex input) {
+        for (Vertex items : masterVert) {
+            items.scrubber(input);
+            items.scrubber2(input);
+        }
+    }
+
+    /** Function that cleans up particulars only for
+     *  particular specified vertex. Takes in the vertex TARGET
+     *  , the one chosen for removal and the vertex INPUT, the
+     *  vertex that will be removed from the target. Takes in the
+     *  string DECIDE. */
+    public void adjacencyCleaner(Vertex input, Vertex target, String decide) {
+        for (Vertex items : masterVert) {
+            if (items.equals(target)) {
+                if (decide.equals("com")) {
+                    items.scrubber(input);
+                } else if (decide.equals("pred")) {
+                    items.scrubber2(input);
+                }
+            }
+        }
+    }
+
+    /** Remove E from me, if present.  E must be between my vertices,
+     *  or the result is undefined.  */
+<<<<<<< .mine
+    public void remove(Edge e) {
+        Vertex v0 = e.getV0();
+        Vertex v1 = e.getV1();
+        if (isDirected()) {
+            for (Iterator<Edge> iterator
+                    = masterEdge.iterator(); iterator.hasNext();) {
+                Edge tempEdge = iterator.next();
+                if (e.equals(tempEdge)) {
+                    iterator.remove();
+                }
+            }
+            adjacencyCleaner(v1, v0, "com");
+            adjacencyCleaner(v0, v1, "pred");
+        } else {
+            for (Iterator<Edge> iterator
+                    = masterEdge.iterator(); iterator.hasNext();) {
+                Edge tempEdge = iterator.next();
+                Vertex erasev0 = tempEdge.getV0();
+                Vertex erasev1 = tempEdge.getV1();
+                if (e.equals(tempEdge)) {
+                    iterator.remove();
+                }
+                if (erasev0.equals(v1) && erasev1.equals(v0)) {
+                    iterator.remove();
+                }
+            }
+            adjacencyCleaner(v1, v0, "com");
+            adjacencyCleaner(v0, v1, "com");
+        }
+=======
+    public void remove(Edge e) {
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Remove all edges from V1 to V2 from me, if present.  The result is
+     *  undefined if V1 and V2 are not among my vertices.  */
+<<<<<<< .mine
+    public void remove(Vertex v1, Vertex v2) {
+        if (isDirected()) {
+            for (Iterator<Edge> iterator
+                    = masterEdge.iterator(); iterator.hasNext();) {
+                Edge tempEdge = iterator.next();
+                Vertex erasev0 = tempEdge.getV0();
+                Vertex erasev1 = tempEdge.getV1();
+                if (erasev0.equals(v1) && erasev1.equals(v2)) {
+                    iterator.remove();
+                }
+            }
+            adjacencyCleaner(v2, v1, "com");
+            adjacencyCleaner(v1, v2, "pred");
+        } else {
+            for (Iterator<Edge> iterator
+                    = masterEdge.iterator(); iterator.hasNext();) {
+                Edge tempEdge = iterator.next();
+                Vertex erasev0 = tempEdge.getV0();
+                Vertex erasev1 = tempEdge.getV1();
+                if (erasev0.equals(v1) && erasev1.equals(v2)) {
+                    iterator.remove();
+                }
+                if (erasev0.equals(v2) && erasev1.equals(v1)) {
+                    iterator.remove();
+                }
+            }
+            adjacencyCleaner(v2, v1, "com");
+            adjacencyCleaner(v1, v2, "com");
+        }
+=======
+    public void remove(Vertex v1, Vertex v2) {
+        // FIXME
+>>>>>>> .r50974
+    }
+
+<<<<<<< .mine
+    /** Method takes in two vertices and returns the
+     *  edge that corresponds with the two vertices.
+     *  Takes in V0 and V1. */
+    Edge getEdge(Vertex v0, Vertex v1) {
+        for (Edge items : masterEdge) {
+            Vertex tmp0 = items.getV0();
+            Vertex tmp1 = items.getV1();
+            if (tmp0.equals(v0) && tmp1.equals(v1)) {
+                return items;
+            }
+        }
+        System.err.print("no edge found");
+=======
+    /** Returns an Iterator over all vertices in arbitrary order. */
+    public Iteration<Vertex> vertices() {
+        // FIXME
+>>>>>>> .r50974
+        return null;
+    }
+
+    /** Returns an Iterator over all vertices in arbitrary order. */
+    public Iteration<Vertex> vertices() {
+        return Iteration.iteration(masterVert);
+    }
+
+    /** Returns an iterator over all successors of V. */
+<<<<<<< .mine
+    public Iteration<Vertex> successors(Vertex v) {
+        return Iteration.iteration(v.getList("com"));
+=======
+    public Iteration<Vertex> successors(Vertex v) {
+        // FIXME
+        return null;
+>>>>>>> .r50974
+    }
+
+    /** Returns an iterator over all predecessors of V. */
+<<<<<<< .mine
+    public Iteration<Vertex> predecessors(Vertex v) {
+        return Iteration.iteration(v.getList("pred"));
+=======
+    public Iteration<Vertex> predecessors(Vertex v) {
+        return null;
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Returns successors(V).  This is a synonym typically used on
+     *  undirected graphs. */
+    public final Iteration<Vertex> neighbors(Vertex v) {
+        return successors(v);
+    }
+
+    /** Returns an iterator over all edges in me. */
+<<<<<<< .mine
+    public Iteration<Edge> edges() {
+        return Iteration.iteration(masterEdge);
+=======
+    public Iteration<Edge> edges() {
+        return null;
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Returns iterator over all outgoing edges from V. */
+<<<<<<< .mine
+    public Iteration<Edge> outEdges(Vertex v) {
+        ArrayList<Edge> tempHold = new ArrayList<Edge>();
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV0();
+            if (tmp.equals(v)) {
+                tempHold.add(items);
+            }
+        }
+        return Iteration.iteration(tempHold);
+=======
+    public Iteration<Edge> outEdges(Vertex v) {
+        return null;
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Returns iterator over all incoming edges to V. */
+<<<<<<< .mine
+    public Iteration<Edge> inEdges(Vertex v) {
+        ArrayList<Edge> tempHold = new ArrayList<Edge>();
+        for (Edge items : masterEdge) {
+            Vertex tmp = items.getV1();
+            if (tmp.equals(v)) {
+                tempHold.add(items);
+            }
+        }
+        return Iteration.iteration(tempHold);
+
+=======
+    public Iteration<Edge> inEdges(Vertex v) {
+        return null;
+        // FIXME
+>>>>>>> .r50974
+    }
+
+    /** Returns outEdges(V). This is a synonym typically used
+     *  on undirected graphs. */
+    public final Iteration<Edge> edges(Vertex v) {
+        return outEdges(v);
+    }
+
+    /** Returns the natural ordering on T, as a Comparator.  For
+     *  example, if stringComp = Graph.<Integer>naturalOrder(), then
+     *  stringComp.compare(x1, y1) is <0 if x1<y1, ==0 if x1=y1, and >0
+     *  otherwise. */
+    public static <T extends Comparable<? super T>> Comparator<T> naturalOrder()
+    {
+        return new Comparator<T>() {
+            @Override
+            public int compare(T x1, T x2) {
+                return x1.compareTo(x2);
+            }
+        };
+    }
+
+    /** Reconstructor of the vertices. Takes in the HashMap CAMEFROM
+     *  and the vertex CURRENTNODE. */
+    void reconstruct(HashMap<Vertex, Vertex> camefrom,
+        Vertex currentNode) {
+        stack.push(currentNode);
+        reconstrHelp(camefrom, currentNode);
+    }
+
+    /** Recursive Helper. Takes in the HashMap CAMEFROM and the vertex
+     *  CURRENTNODE. Returns the Stack<Vertex>. */
+    Stack<Vertex> reconstrHelp(HashMap<Vertex, Vertex> camefrom,
+        Vertex currentNode) {
+        if (camefrom.keySet().contains(currentNode)) {
+            stack.push(camefrom.get(currentNode));
+            return reconstrHelp(camefrom, camefrom.get(currentNode));
+        } else {
+            return stack;
+        }
+    }
+
+    /** List of Edge constructor and returns and ArrayList<Edge>. */
+    ArrayList<Edge> pathBuilder() {
+        bestPath.clear();
+        Vertex tmp;
+        tmp = stack.pop();
+        while (!stack.empty()) {
+            Vertex tmp1 = stack.pop();
+            Edge add = getEdge(tmp, tmp1);
+            bestPath.add(add);
+            tmp = tmp1;
+        }
+        return bestPath;
+    }
+
+
+    /** Cause subsequent traversals and calls to edges() to visit or deliver
+     *  edges in sorted order, according to COMPARATOR. Subsequent
+     *  addition of edges may cause the edges to be reordered
+     *  arbitrarily.  */
+    public void orderEdges(final Comparator<ELabel> comparator) {
+        Comparator<Edge> edge = new Comparator<Edge>() {
+            @Override
+            public int compare(Edge x1, Edge x2) {
+                return comparator.compare(x1.getLabel(), x2.getLabel());
+            }
+        };
+        Collections.sort(masterEdge, edge);
+    }
+
+}
